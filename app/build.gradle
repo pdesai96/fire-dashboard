@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.firedash'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.firedash'
+        minSdk 22          // Fire OS 5 (Fire HD 10, 2017)
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    signingConfigs {
+        // A fixed key so updates install over the top. Not a secret: it only signs this hobby app.
+        dashboard {
+            storeFile file('dashboard.keystore')
+            storePassword 'dashboard'
+            keyAlias 'dashboard'
+            keyPassword 'dashboard'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.dashboard
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
