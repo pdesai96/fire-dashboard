@@ -3,6 +3,8 @@ package com.firedash;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.List;
+
 /** Saves settings and the last forecast on the device. */
 final class Prefs {
     private Prefs() {}
@@ -18,13 +20,17 @@ final class Prefs {
         cfg.place = s.getString("place", d.place);
         cfg.lat = parse(s.getString("lat", null), d.lat);
         cfg.lon = parse(s.getString("lon", null), d.lon);
+        cfg.autoLocation = s.getBoolean("autoLocation", d.autoLocation);
+        cfg.locatedAt = s.getLong("locatedAt", d.locatedAt);
         cfg.fahrenheit = s.getBoolean("fahrenheit", d.fahrenheit);
         cfg.windUnit = s.getString("windUnit", d.windUnit);
         cfg.clock24h = s.getBoolean("clock24h", d.clock24h);
         cfg.hourStep = s.getInt("hourStep", d.hourStep);
         cfg.note = s.getString("note", d.note);
         cfg.refreshMinutes = s.getInt("refreshMinutes", d.refreshMinutes);
-        cfg.theme = s.getString("theme", d.theme);
+        cfg.background = s.getString("background", d.background);
+        cfg.briefing = s.getBoolean("briefing", d.briefing);
+        cfg.icsUrl = s.getString("icsUrl", d.icsUrl);
         cfg.dimAtNight = s.getBoolean("dimAtNight", d.dimAtNight);
         cfg.startOnBoot = s.getBoolean("startOnBoot", d.startOnBoot);
         return cfg;
@@ -35,13 +41,17 @@ final class Prefs {
                 .putString("place", cfg.place)
                 .putString("lat", Double.toString(cfg.lat))
                 .putString("lon", Double.toString(cfg.lon))
+                .putBoolean("autoLocation", cfg.autoLocation)
+                .putLong("locatedAt", cfg.locatedAt)
                 .putBoolean("fahrenheit", cfg.fahrenheit)
                 .putString("windUnit", cfg.windUnit)
                 .putBoolean("clock24h", cfg.clock24h)
                 .putInt("hourStep", cfg.hourStep)
                 .putString("note", cfg.note)
                 .putInt("refreshMinutes", cfg.refreshMinutes)
-                .putString("theme", cfg.theme)
+                .putString("background", cfg.background)
+                .putBoolean("briefing", cfg.briefing)
+                .putString("icsUrl", cfg.icsUrl)
                 .putBoolean("dimAtNight", cfg.dimAtNight)
                 .putBoolean("startOnBoot", cfg.startOnBoot)
                 .apply();
@@ -62,6 +72,37 @@ final class Prefs {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    // ---- alarms
+    static List<Alarm> alarms(Context c) { return Alarm.parseAll(sp(c).getString("alarms", "")); }
+
+    static void saveAlarms(Context c, List<Alarm> alarms) { sp(c).edit().putString("alarms", Alarm.serialize(alarms)).apply(); }
+
+    static long snoozeUntil(Context c) { return sp(c).getLong("snoozeUntil", 0); }
+
+    static void setSnooze(Context c, long t) { sp(c).edit().putLong("snoozeUntil", t).apply(); }
+
+    // ---- small caches and state
+    static String get(Context c, String key) { return sp(c).getString(key, null); }
+
+    static void put(Context c, String key, String value) { sp(c).edit().putString(key, value).apply(); }
+
+    static long getLong(Context c, String key) { return sp(c).getLong(key, 0); }
+
+    static void putLong(Context c, String key, long value) { sp(c).edit().putLong(key, value).apply(); }
+
+    /** A random id that pairs this tablet with the Alexa relay. */
+    static String channel(Context c) {
+        String id = sp(c).getString("channel", null);
+        if (id == null) {
+            java.security.SecureRandom r = new java.security.SecureRandom();
+            StringBuilder b = new StringBuilder();
+            for (int i = 0; i < 16; i++) b.append(String.format(java.util.Locale.ROOT, "%02x", r.nextInt(256)));
+            id = b.toString();
+            sp(c).edit().putString("channel", id).apply();
+        }
+        return id;
     }
 
     private static double parse(String v, double fallback) {

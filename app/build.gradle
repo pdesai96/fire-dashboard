@@ -10,8 +10,10 @@ android {
         applicationId 'com.firedash'
         minSdk 22          // Fire OS 5 (Fire HD 10, 2017)
         targetSdk 35
-        versionCode 1
-        versionName '1.0'
+        // CI numbers each build so the tablet can tell when there's a newer one.
+        def run = (System.getenv('GITHUB_RUN_NUMBER') ?: '0').toInteger()
+        versionCode 100 + run
+        versionName "2.${run}"
     }
 
     signingConfigs {

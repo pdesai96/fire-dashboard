@@ -1,13 +1,7 @@
 package com.firedash;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -48,12 +42,12 @@ final class WeatherClient {
 
     /** Raw forecast JSON. */
     static String forecastBody(Config c) throws IOException {
-        return getEitherScheme(forecastUrl(c, "http"), forecastUrl(c, "https"));
+        return Net.getFirst(forecastUrl(c, "http"), forecastUrl(c, "https"));
     }
 
     @SuppressWarnings("unchecked")
     static List<Place> geocode(String name) throws IOException {
-        String body = getEitherScheme(geocodeUrl(name, "http"), geocodeUrl(name, "https"));
+        String body = Net.getFirst(geocodeUrl(name, "http"), geocodeUrl(name, "https"));
         List<Place> out = new ArrayList<>();
         Object root = Json.parse(body);
         if (!(root instanceof Map)) return out;
@@ -73,46 +67,5 @@ final class WeatherClient {
         return out;
     }
 
-    private static String getEitherScheme(String httpUrl, String httpsUrl) throws IOException {
-        try {
-            return get(httpUrl);
-        } catch (IOException first) {
-            try {
-                return get(httpsUrl);
-            } catch (IOException second) {
-                throw first;
-            }
-        }
-    }
-
-    static String get(String url) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(8000);
-        conn.setReadTimeout(15000);
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("User-Agent", "FireDashboard/1.0");
-        try {
-            int code = conn.getResponseCode();
-            if (code != 200) throw new IOException("server error " + code);
-            InputStream in = conn.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buf = new byte[8192];
-            int r;
-            while ((r = in.read(buf)) > 0) out.write(buf, 0, r);
-            in.close();
-            return out.toString("UTF-8");
-        } finally {
-            conn.disconnect();
-        }
-    }
-
-    /** A short, readable reason for the footer. */
-    static String describe(Exception e) {
-        if (e instanceof UnknownHostException) return "no connection";
-        if (e instanceof SocketTimeoutException) return "timed out";
-        String m = e.getMessage();
-        if (m != null && m.startsWith("server error")) return m;
-        if (e instanceof IllegalArgumentException) return "unexpected reply";
-        return "network error";
-    }
+    static String describe(Exception e) { return Net.describe(e); }
 }

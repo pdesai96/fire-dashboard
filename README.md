@@ -1,27 +1,33 @@
 # Fire Dashboard
 
-A full-screen, always-on dashboard app for an old Amazon Fire tablet: a big clock, the date, the weather now, the next 24 hours, the next 5 days, and sunrise and sunset. It uses a light look by day and a dark, dimmed look at night.
+A full-screen, always-on personal dashboard for an old Amazon Fire tablet (built for the Fire HD 10, 2017, Fire OS 5). It shows:
 
-Weather comes from [Open-Meteo](https://open-meteo.com), which is free for non-commercial use and needs no account or API key.
+- **Clock and alarms.** Tap the clock to add an alarm. Alarms ring full-screen with Snooze and Stop, and after Stop the tablet reads a short morning briefing.
+- **Weather for where you are.** It uses the tablet's Wi-Fi location, or a rough guess from the internet connection. Data comes from [Open-Meteo](https://open-meteo.com).
+- **Manchester United.** The next match with a countdown, the live score during games, the last result and the league position (from ESPN's public data).
+- **United news.** Headlines from ManUtd.com and BBC Sport. Tap a headline to read it.
+- **Outlook calendar (optional).** Today's events, via your calendar's private ICS link.
+- **Gradient backgrounds.** "Follow the sky" changes with the time of day. There are also Red Devils, Ocean, Aurora and more, and the screen dims at night.
 
-Built for the Fire HD 10 (2017, Fire OS 5). It works on any Fire or Android tablet running Android 5.1 or later.
-
-## Install on the tablet
+## Install on the tablet (once)
 
 1. On the tablet, open **Settings > Security & Privacy** and turn on **Apps from Unknown Sources**.
-2. In the Silk browser, open this repo's **Releases** page and download `fire-dashboard.apk`:
-   `https://github.com/pdesai96/fire-dashboard/releases/latest/download/fire-dashboard.apk`
-3. Open the download, then tap **Install**.
-4. Open **Dashboard** from the home screen.
+2. In Silk, open `https://github.com/pdesai96/fire-dashboard/releases/latest/download/fire-dashboard.apk`, then open the download and tap **Install**.
+
+After that you don't need to download anything again:
+
+- **Live changes:** colours, which cards show, news sources and similar settings live in [`live/config.json`](live/config.json). The tablet checks that file every hour.
+- **New versions:** a yellow **Update ready** button appears at the top of the dashboard. Tap it, then tap **Install**.
 
 ## Use
 
-- **Tap** anywhere to refresh the weather.
-- **Long-press** to open the settings. From there you can set the location (search by town, or type `lat, lon`), add a note for the footer, switch between a 12- and 24-hour clock, change units, choose the look (auto, light or dark), dim the screen at night, set the hourly spacing and how often it updates, and choose whether it opens when the tablet starts.
-- The screen stays on while the app is open, so keep the tablet plugged in.
+- **Tap** anywhere to refresh. **Tap the clock** for alarms. **Tap a headline** to read it.
+- **Long-press** for settings: location, background, alarms, briefing, Outlook calendar, clock and units, night dimming, start-on-boot, updates and the Alexa pairing code.
+
+## Alexa
+
+The tablet checks a small online mailbox (set in `live/config.json` under `relay.url`) for commands sent by a private Alexa skill, such as setting an alarm, reading the briefing or news, changing the background, or refreshing. Each command looks like `{"id": 12, "type": "alarm", "time": "07:00", "days": "weekdays", "label": "Work"}`.
 
 ## Build
 
-GitHub Actions builds the APK on every push to `main` and publishes it as the `latest` release. To build it yourself, run `gradle assembleRelease` (Gradle 8.14, JDK 17 and the Android SDK).
-
-The signing key in `app/dashboard.keystore` is deliberately not secret. It only exists so that new builds install over old ones.
+GitHub Actions builds a signed APK on every push to `main` (pushes that only change `live/` are skipped) and publishes it, together with `version.json`, as the `latest` release. The signing key in `app/dashboard.keystore` is deliberately not secret. It only exists so that new builds install over old ones.

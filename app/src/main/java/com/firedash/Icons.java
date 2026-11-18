@@ -86,37 +86,37 @@ final class Icons {
     }
 
     /** Draws icon `name` with its top-left corner at (x, y), size pixels square. */
-    static void draw(Painter p, String name, float x, float y, float size, Theme t) {
+    static void draw(Painter p, String name, float x, float y, float size, Palette t) {
         float k = size / 64f, sw = 4 * k;
         switch (name) {
             case "clear-day":
                 sun(p, x, y, k, 32, 32, 11, 18, 25, t.sun, sw);
                 break;
             case "clear-night":
-                p.path(MOON, x, y, k, null, t.ink, sw);
+                p.path(MOON, x, y, k, t.iconFill, t.iconStroke, sw);
                 break;
             case "partly-day":
                 sun(p, x, y, k, 23, 23, 8, 13, 18, t.sun, sw);
-                p.path(CLOUD_PARTLY, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD_PARTLY, x, y, k, t.iconFill, t.iconStroke, sw);
                 break;
             case "partly-night":
-                p.path(MOON_SMALL, x, y, k, null, t.ink, sw * 0.8f);
-                p.path(CLOUD_PARTLY, x, y, k, t.bg, t.ink, sw);
+                p.path(MOON_SMALL, x, y, k, t.iconFill, t.iconStroke, sw * 0.8f);
+                p.path(CLOUD_PARTLY, x, y, k, t.iconFill, t.iconStroke, sw);
                 break;
             case "fog":
-                line(p, x, y, k, 12, 22, 52, 22, sw, t.ink);
-                line(p, x, y, k, 8, 32, 48, 32, sw, t.ink);
-                line(p, x, y, k, 16, 42, 56, 42, sw, t.ink);
-                line(p, x, y, k, 12, 52, 44, 52, sw, t.ink);
+                line(p, x, y, k, 12, 22, 52, 22, sw, t.iconStroke);
+                line(p, x, y, k, 8, 32, 48, 32, sw, t.iconStroke);
+                line(p, x, y, k, 16, 42, 56, 42, sw, t.iconStroke);
+                line(p, x, y, k, 12, 52, 44, 52, sw, t.iconStroke);
                 break;
             case "rain":
-                p.path(CLOUD_HIGH, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD_HIGH, x, y, k, t.iconFill, t.iconStroke, sw);
                 line(p, x, y, k, 25, 46, 21, 56, sw, t.rain);
                 line(p, x, y, k, 35, 46, 31, 56, sw, t.rain);
                 line(p, x, y, k, 45, 46, 41, 56, sw, t.rain);
                 break;
             case "drizzle":
-                p.path(CLOUD_HIGH, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD_HIGH, x, y, k, t.iconFill, t.iconStroke, sw);
                 line(p, x, y, k, 24, 47, 23, 50, sw, t.rain);
                 line(p, x, y, k, 34, 47, 33, 50, sw, t.rain);
                 line(p, x, y, k, 44, 47, 43, 50, sw, t.rain);
@@ -124,16 +124,16 @@ final class Icons {
                 line(p, x, y, k, 39, 55, 38, 58, sw, t.rain);
                 break;
             case "snow":
-                p.path(CLOUD_HIGH, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD_HIGH, x, y, k, t.iconFill, t.iconStroke, sw);
                 float[][] dots = { { 23, 49 }, { 33, 52 }, { 43, 49 }, { 28, 58 }, { 38, 58 } };
                 for (float[] d : dots) p.circle(x + d[0] * k, y + d[1] * k, 2.8f * k, t.snow, null, 0);
                 break;
             case "storm":
-                p.path(CLOUD_HIGH, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD_HIGH, x, y, k, t.iconFill, t.iconStroke, sw);
                 p.path(BOLT, x, y, k, t.bolt, t.bolt, 2 * k);
                 break;
             default: // cloud
-                p.path(CLOUD, x, y, k, t.bg, t.ink, sw);
+                p.path(CLOUD, x, y, k, t.iconFill, t.iconStroke, sw);
         }
     }
 

@@ -3,6 +3,10 @@ name: Build APK
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'live/**'      # live config changes reach the tablet directly, no rebuild needed
+      - 'alexa/**'
+      - '**.md'
   workflow_dispatch:
 
 permissions:
@@ -26,8 +30,11 @@ jobs:
       - name: Build
         run: gradle --no-daemon assembleRelease
 
-      - name: Name the APK
-        run: cp app/build/outputs/apk/release/app-release.apk fire-dashboard.apk
+      - name: Name the APK and write version.json
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk fire-dashboard.apk
+          echo "{\"versionCode\": $((100 + ${{ github.run_number }})), \"versionName\": \"2.${{ github.run_number }}\"}" > version.json
+          cat version.json
 
       - uses: actions/upload-artifact@v4
         with:
@@ -39,7 +46,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest fire-dashboard.apk \
+          gh release create latest fire-dashboard.apk version.json \
             --title "Fire Dashboard (build ${{ github.run_number }})" \
-            --notes "On the tablet, download fire-dashboard.apk and open it to install." \
+            --notes "On the tablet, download fire-dashboard.apk and open it to install. Once installed, the dashboard offers new versions itself." \
             --latest

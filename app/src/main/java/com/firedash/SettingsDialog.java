@@ -6,6 +6,7 @@ import android.text.InputType;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -17,17 +18,25 @@ final class SettingsDialog {
 
     static void show(final DashboardActivity a) {
         final Config c = Prefs.load(a);
+        String bgId = c.background.isEmpty() ? a.live.defaultBackground : c.background;
+        LiveConfig.Gradient g = a.live.gradient(bgId);
+        int alarmsOn = 0;
+        for (Alarm x : Prefs.alarms(a)) if (x.enabled) alarmsOn++;
+        String channel = Prefs.channel(a);
         String[] items = {
-                "Location: " + c.place,
-                "Note: " + (c.note.trim().isEmpty() ? "none" : c.note),
+                "Location: " + c.place + (c.autoLocation ? " (automatic)" : ""),
+                "Background: " + (g != null ? g.label : bgId),
+                "Alarms: " + (alarmsOn == 0 ? "none" : alarmsOn + " on"),
+                "Read a briefing after the alarm: " + onOff(c.briefing),
+                "Read the briefing now",
+                "Outlook calendar: " + (c.icsUrl.isEmpty() ? "not connected" : "connected"),
                 "Clock: " + (c.clock24h ? "24-hour" : "12-hour"),
                 "Units: " + (c.fahrenheit ? "°F" : "°C") + ", " + c.windLabel(),
-                "Look: " + themeLabel(c.theme),
                 "Dim the screen at night: " + onOff(c.dimAtNight),
                 "Hourly forecast: every " + c.hourStep + (c.hourStep == 1 ? " hour" : " hours"),
-                "Update the weather every " + c.refreshMinutes + " minutes",
                 "Open when the tablet starts: " + onOff(c.startOnBoot),
-                "Refresh the weather now",
+                "Check for updates (this is version " + Updater.installedName(a) + ")",
+                "Alexa pairing code: " + channel.substring(0, 6).toUpperCase(Locale.ROOT),
                 "Close the dashboard",
         };
         new AlertDialog.Builder(a, THEME)
@@ -35,18 +44,24 @@ final class SettingsDialog {
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface d, int which) {
                         switch (which) {
-                            case 0: askLocation(a); return;
-                            case 1: askNote(a, c); return;
-                            case 2: c.clock24h = !c.clock24h; break;
-                            case 3: chooseUnits(a, c); return;
-                            case 4: chooseTheme(a, c); return;
-                            case 5: c.dimAtNight = !c.dimAtNight; break;
-                            case 6: chooseInt(a, c, "Hourly forecast", new int[] { 1, 2, 3 },
-                                    new String[] { "Every hour (next 8 hours)", "Every 2 hours (next 16 hours)", "Every 3 hours (next 24 hours)" }, true); return;
-                            case 7: chooseInt(a, c, "Update the weather every", new int[] { 10, 15, 30, 60 },
-                                    new String[] { "10 minutes", "15 minutes", "30 minutes", "1 hour" }, false); return;
-                            case 8: c.startOnBoot = !c.startOnBoot; break;
-                            case 9: a.refreshFromSettings(); return;
+                            case 0: location(a); return;
+                            case 1: background(a, c); return;
+                            case 2: AlarmsDialog.show(a); return;
+                            case 3: c.briefing = !c.briefing; break;
+                            case 4: Speaker.say(a, AlarmActivity.briefingText(a)); return;
+                            case 5: calendar(a, c); return;
+                            case 6: c.clock24h = !c.clock24h; break;
+                            case 7: units(a, c); return;
+                            case 8: c.dimAtNight = !c.dimAtNight; break;
+                            case 9: hourly(a, c); return;
+                            case 10: c.startOnBoot = !c.startOnBoot; break;
+                            case 11:
+                                a.checkForUpdateNow();
+                                Toast.makeText(a, "Checking… if there's an update, a yellow button appears at the top.", Toast.LENGTH_LONG).show();
+                                return;
+                            case 12:
+                                Toast.makeText(a, "Full code: " + Prefs.channel(a), Toast.LENGTH_LONG).show();
+                                return;
                             default: a.finish(); return;
                         }
                         saveAndReopen(a, c);
@@ -64,13 +79,61 @@ final class SettingsDialog {
 
     private static String onOff(boolean b) { return b ? "on" : "off"; }
 
-    private static String themeLabel(String t) {
-        if (t.equals("light")) return "always light";
-        if (t.equals("dark")) return "always dark";
-        return "light by day, dark at night";
+    private static void location(final DashboardActivity a) {
+        String[] opts = { "Use my location automatically", "Search for a town or city" };
+        new AlertDialog.Builder(a, THEME).setTitle("Location").setItems(opts, new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface d, int which) {
+                if (which == 0) {
+                    Toast.makeText(a, "Finding you…", Toast.LENGTH_SHORT).show();
+                    a.locate(true);
+                } else {
+                    askPlace(a);
+                }
+            }
+        }).show();
     }
 
-    private static void chooseUnits(final DashboardActivity a, final Config c) {
+    private static void background(final DashboardActivity a, final Config c) {
+        final List<LiveConfig.Gradient> list = new ArrayList<>(a.live.gradients.values());
+        String[] labels = new String[list.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = list.get(i).label;
+        new AlertDialog.Builder(a, THEME).setTitle("Background").setItems(labels, new DialogInterface.OnClickListener() {
+            @Override public void onClick(DialogInterface d, int which) {
+                c.background = list.get(which).id;
+                saveAndReopen(a, c);
+            }
+        }).show();
+    }
+
+    private static void calendar(final DashboardActivity a, final Config c) {
+        final EditText input = new EditText(a);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setHint("https://outlook.office365.com/owa/calendar/…/calendar.ics");
+        input.setText(c.icsUrl);
+        new AlertDialog.Builder(a, THEME)
+                .setTitle("Outlook calendar")
+                .setMessage("In Outlook on the web: Settings → Calendar → Shared calendars → Publish a calendar. "
+                        + "Pick your calendar, choose \"Can view all details\", tap Publish, then copy the ICS link and paste it here. "
+                        + "The link stays on this tablet.")
+                .setView(input)
+                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface d, int which) {
+                        c.icsUrl = input.getText().toString().trim();
+                        saveAndReopen(a, c);
+                    }
+                })
+                .setNeutralButton("Disconnect", new DialogInterface.OnClickListener() {
+                    @Override public void onClick(DialogInterface d, int which) {
+                        c.icsUrl = "";
+                        saveAndReopen(a, c);
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private static void units(final DashboardActivity a, final Config c) {
         final String[] labels = { "°C and mph", "°C and km/h", "°C and m/s", "°F and mph" };
         final boolean[] fahrenheit = { false, false, false, true };
         final String[] wind = { "mph", "kmh", "ms", "mph" };
@@ -83,58 +146,28 @@ final class SettingsDialog {
         }).show();
     }
 
-    private static void chooseTheme(final DashboardActivity a, final Config c) {
-        final String[] values = { "auto", "light", "dark" };
-        final String[] labels = { "Light by day, dark at night", "Always light", "Always dark" };
-        new AlertDialog.Builder(a, THEME).setTitle("Look").setItems(labels, new DialogInterface.OnClickListener() {
+    private static void hourly(final DashboardActivity a, final Config c) {
+        final int[] values = { 1, 2, 3 };
+        String[] labels = { "Every hour (next 8 hours)", "Every 2 hours (next 16 hours)", "Every 3 hours (next 24 hours)" };
+        new AlertDialog.Builder(a, THEME).setTitle("Hourly forecast").setItems(labels, new DialogInterface.OnClickListener() {
             @Override public void onClick(DialogInterface d, int which) {
-                c.theme = values[which];
+                c.hourStep = values[which];
                 saveAndReopen(a, c);
             }
         }).show();
     }
 
-    private static void chooseInt(final DashboardActivity a, final Config c, String title, final int[] values,
-                                  String[] labels, final boolean hourStep) {
-        new AlertDialog.Builder(a, THEME).setTitle(title).setItems(labels, new DialogInterface.OnClickListener() {
-            @Override public void onClick(DialogInterface d, int which) {
-                if (hourStep) c.hourStep = values[which]; else c.refreshMinutes = values[which];
-                saveAndReopen(a, c);
-            }
-        }).show();
-    }
-
-    private static void askNote(final DashboardActivity a, final Config c) {
-        final EditText input = new EditText(a);
-        input.setSingleLine(true);
-        input.setHint("e.g. Bins out Thursday");
-        input.setText(c.note);
-        new AlertDialog.Builder(a, THEME)
-                .setTitle("Note for the footer")
-                .setView(input)
-                .setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface d, int which) {
-                        c.note = input.getText().toString().replace('\n', ' ').trim();
-                        saveAndReopen(a, c);
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    private static void askLocation(final DashboardActivity a) {
+    private static void askPlace(final DashboardActivity a) {
         final EditText input = new EditText(a);
         input.setSingleLine(true);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        input.setHint("Town or city, e.g. Leeds");
+        input.setHint("Town or city, e.g. Salford");
         new AlertDialog.Builder(a, THEME)
                 .setTitle("Where are you?")
-                .setMessage("Type a town or city. You can also type coordinates, like 51.51, -0.13")
+                .setMessage("Type a town or city. You can also type coordinates, like 53.48, -2.24")
                 .setView(input)
                 .setPositiveButton("Search", new DialogInterface.OnClickListener() {
-                    @Override public void onClick(DialogInterface d, int which) {
-                        search(a, input.getText().toString().trim());
-                    }
+                    @Override public void onClick(DialogInterface d, int which) { search(a, input.getText().toString().trim()); }
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -162,7 +195,7 @@ final class SettingsDialog {
                 try {
                     found = WeatherClient.geocode(query);
                 } catch (Exception e) {
-                    error = WeatherClient.describe(e);
+                    error = Net.describe(e);
                 }
                 final List<WeatherClient.Place> places = found;
                 final String err = error;
@@ -198,6 +231,7 @@ final class SettingsDialog {
         c.place = name;
         c.lat = lat;
         c.lon = lon;
+        c.autoLocation = false; // the user chose a place: stop following the tablet
         Prefs.save(a, c);
         a.settingsChanged();
         Toast.makeText(a, "Location set to " + name, Toast.LENGTH_SHORT).show();

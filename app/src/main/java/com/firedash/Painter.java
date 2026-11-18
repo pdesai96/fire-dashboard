@@ -6,6 +6,11 @@ interface Painter {
 
     void fillRect(float x, float y, float w, float h, int color);
 
+    void fillRoundRect(float x, float y, float w, float h, float r, int color);
+
+    /** Vertical gradient from top colour to bottom colour. */
+    void fillGradient(float x, float y, float w, float h, int top, int bottom);
+
     void strokeRect(float x, float y, float w, float h, float stroke, int color);
 
     /** Width of text in pixels. tracking is extra letter spacing in ems. */

@@ -1,8 +1,10 @@
 package com.firedash;
 
 import android.graphics.Canvas;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 
 /** Painter backed by an Android Canvas. */
@@ -33,6 +35,21 @@ final class AndroidPainter implements Painter {
         shape.setStyle(Paint.Style.FILL);
         shape.setColor(color);
         canvas.drawRect(x, y, x + w, y + h, shape);
+    }
+
+    @Override
+    public void fillRoundRect(float x, float y, float w, float h, float r, int color) {
+        shape.setStyle(Paint.Style.FILL);
+        shape.setColor(color);
+        canvas.drawRoundRect(x, y, x + w, y + h, r, r, shape);
+    }
+
+    @Override
+    public void fillGradient(float x, float y, float w, float h, int top, int bottom) {
+        Paint g = new Paint();
+        g.setShader(new LinearGradient(0, y, 0, y + h, top, bottom, Shader.TileMode.CLAMP));
+        g.setDither(true);
+        canvas.drawRect(x, y, x + w, y + h, g);
     }
 
     @Override

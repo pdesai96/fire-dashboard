@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "notice": "",
+  "background": "sky",
+  "gradients": {
+    "reddevils": { "label": "Red Devils", "top": "#C8102E", "bottom": "#1A0507" },
+    "midnight":  { "label": "Midnight",   "top": "#1B2440", "bottom": "#06080F" },
+    "ocean":     { "label": "Ocean",      "top": "#0F5E8C", "bottom": "#07203A" },
+    "aurora":    { "label": "Aurora",     "top": "#0E6B5C", "bottom": "#1C1440" },
+    "sunset":    { "label": "Sunset",     "top": "#E0703A", "bottom": "#4A1F4F" },
+    "graphite":  { "label": "Graphite",   "top": "#3A3D42", "bottom": "#121315" }
+  },
+  "team": { "name": "Manchester United", "short": "Man Utd", "espnId": "360", "league": "eng.1" },
+  "news": {
+    "feeds": [
+      { "name": "ManUtd.com", "url": "https://www.manutd.com/Feeds/NewsSecondRSSFeed", "filter": false },
+      { "name": "BBC Sport", "url": "http://feeds.bbci.co.uk/sport/football/rss.xml", "filter": true }
+    ],
+    "keywords": ["Man Utd", "Manchester United", "Man United", "Old Trafford"],
+    "max": 6
+  },
+  "cards": { "united": true, "news": true, "calendar": true, "forecast": true },
+  "relay": { "url": "", "pollSeconds": 5 },
+  "refresh": { "newsMinutes": 30, "unitedMinutes": 30, "liveSeconds": 60, "configMinutes": 60, "updateCheckHours": 6 },
+  "briefing": true
+}

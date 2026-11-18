@@ -5,14 +5,18 @@ final class Config {
     String place = "London";
     double lat = 51.5072;
     double lon = -0.1276;
+    boolean autoLocation = true;    // follow the tablet's location
+    long locatedAt = 0;             // when the location was last detected (ms)
     boolean fahrenheit = false;
     String windUnit = "mph";        // mph, kmh, ms, kn
     boolean clock24h = true;
     int hourStep = 3;               // hours between columns in the hourly strip
     String note = "";               // one line of your own text in the footer
     int refreshMinutes = 15;
-    String theme = "auto";          // auto (dark at night), light, dark
+    String background = "";         // gradient id; empty = the live config's default
     boolean dimAtNight = true;
+    boolean briefing = true;        // read a briefing after the alarm is stopped
+    String icsUrl = "";             // private calendar link (Outlook "ICS" link)
     boolean startOnBoot = true;
 
     String windLabel() {
