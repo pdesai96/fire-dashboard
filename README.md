@@ -8,6 +8,7 @@ A full-screen, always-on personal dashboard for an old Amazon Fire tablet (built
 - **United news.** Headlines from ManUtd.com and BBC Sport. Tap a headline to read it.
 - **Outlook calendar (optional).** Today's events, via your calendar's private ICS link.
 - **Gradient backgrounds.** "Follow the sky" changes with the time of day. There are also Red Devils, Ocean, Aurora and more, and the screen dims at night.
+- **JARVIS, your assistant (new).** Tap the **JARVIS** button at the top to talk to an AI assistant that runs on your Raspberry Pi. See [`server/`](server/README.md) and the plan in [`docs/jarvis/PLAN.md`](docs/jarvis/PLAN.md).
 
 ## Install on the tablet (once)
 
@@ -22,11 +23,19 @@ After that you don't need to download anything again:
 ## Use
 
 - **Tap** anywhere to refresh. **Tap the clock** for alarms. **Tap a headline** to read it.
-- **Long-press** for settings: location, background, alarms, briefing, Outlook calendar, clock and units, night dimming, start-on-boot, updates and the Alexa pairing code.
+- **Tap JARVIS** (top right) to ask anything. Replies are shown and read aloud. The first tap walks you through pairing with the Pi.
+- **Long-press** for settings: JARVIS, location, background, alarms, briefing, Outlook calendar, clock and units, night dimming, start-on-boot and updates.
 
-## Alexa
+## JARVIS
 
-The tablet checks a small online mailbox (set in `live/config.json` under `relay.url`) for commands sent by a private Alexa skill, such as setting an alarm, reading the briefing or news, changing the background, or refreshing. Each command looks like `{"id": 12, "type": "alarm", "time": "07:00", "days": "weekdays", "label": "Work"}`.
+The assistant's brain runs on a Raspberry Pi on your home network ([`server/`](server/README.md)). The tablet holds only a revocable device token, never an API key. To connect:
+1. Set up the Pi using the [server README](server/README.md).
+2. In the console at `http://<pi>:8787`, choose **Devices**, then **Create pairing code**.
+3. On the tablet, tap **SET UP JARVIS** and enter the Pi's address and the code.
+
+## Alexa (retired)
+
+Replaced by JARVIS; the code is dormant unless `relay.url` is set. The tablet checks a small online mailbox (set in `live/config.json` under `relay.url`) for commands sent by a private Alexa skill, such as setting an alarm, reading the briefing or news, changing the background, or refreshing. Each command looks like `{"id": 12, "type": "alarm", "time": "07:00", "days": "weekdays", "label": "Work"}`.
 
 ## Build
 

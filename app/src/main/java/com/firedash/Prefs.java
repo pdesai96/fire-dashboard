@@ -92,6 +92,26 @@ final class Prefs {
 
     static void putLong(Context c, String key, long value) { sp(c).edit().putLong(key, value).apply(); }
 
+    // ---- JARVIS (the assistant server on the Raspberry Pi)
+    /** Server address, e.g. http://192.168.1.50:8787, or null if never set. */
+    static String jarvisUrl(Context c) { return sp(c).getString("jarvisUrl", null); }
+
+    /** This tablet's device token, or null when not paired. Only ever sent to jarvisUrl. */
+    static String jarvisToken(Context c) { return sp(c).getString("jarvisToken", null); }
+
+    static String jarvisName(Context c) { return sp(c).getString("jarvisName", "JARVIS"); }
+
+    static boolean jarvisSpeak(Context c) { return sp(c).getBoolean("jarvisSpeak", true); }
+
+    static void setJarvisSpeak(Context c, boolean on) { sp(c).edit().putBoolean("jarvisSpeak", on).apply(); }
+
+    static void setJarvis(Context c, String url, String token, String name) {
+        sp(c).edit().putString("jarvisUrl", url).putString("jarvisToken", token)
+                .putString("jarvisName", name == null || name.isEmpty() ? "JARVIS" : name).apply();
+    }
+
+    static void forgetJarvisToken(Context c) { sp(c).edit().remove("jarvisToken").apply(); }
+
     /** A random id that pairs this tablet with the Alexa relay. */
     static String channel(Context c) {
         String id = sp(c).getString("channel", null);

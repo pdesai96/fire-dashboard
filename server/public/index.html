@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JARVIS console</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <main id="login" class="login" hidden>
+    <div class="orb" aria-hidden="true"><span></span></div>
+    <h1 class="wordmark" data-name>JARVIS</h1>
+    <p class="muted">Admin console</p>
+    <form id="login-form" class="panel login-panel" autocomplete="off">
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button type="submit" class="primary">Sign in</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+    <p id="admin-disabled" class="muted small" hidden>The console is switched off. Set <code>ADMIN_PASSWORD</code> (10 or more characters) in the server's <code>.env</code> and restart.</p>
+  </main>
+
+  <div id="shell" class="shell" hidden>
+    <header class="top">
+      <div class="brand"><div class="orb small" aria-hidden="true"><span></span></div><span class="wordmark" data-name>JARVIS</span></div>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="chat" class="active">Chat</button>
+        <button role="tab" data-tab="devices">Devices</button>
+        <button role="tab" data-tab="activity">Activity</button>
+        <button role="tab" data-tab="system">System</button>
+      </nav>
+      <div class="status"><span id="model-dot" class="dot"></span><span id="model-label" class="small muted">model</span>
+        <button id="logout" class="ghost small">Sign out</button></div>
+    </header>
+
+    <section id="tab-chat" class="tab">
+      <div class="panel chat">
+        <div id="messages" class="messages" aria-live="polite"></div>
+        <form id="chat-form" class="composer">
+          <input id="chat-input" placeholder="Ask anything…" autocomplete="off" maxlength="4000">
+          <label class="voice-toggle small muted"><input id="voice-style" type="checkbox"> Voice style</label>
+          <button type="submit" class="primary">Send</button>
+        </form>
+        <div class="row end"><button id="new-chat" class="ghost small">New conversation</button></div>
+      </div>
+    </section>
+
+    <section id="tab-devices" class="tab" hidden>
+      <div class="panel">
+        <h2>Pair a device</h2>
+        <p class="muted">Create a code, then on the tablet open <em>Settings → Connect to <span data-name>JARVIS</span></em> and enter this server's address and the code. Codes work once and expire after 10 minutes.</p>
+        <button id="make-code" class="primary">Create pairing code</button>
+        <div id="code-box" class="code-box" hidden><span id="code"></span><span id="code-expiry" class="small muted"></span></div>
+      </div>
+      <div class="panel">
+        <h2>Paired devices</h2>
+        <table class="table"><thead><tr><th>Name</th><th>Paired</th><th>Last seen</th><th></th></tr></thead><tbody id="devices"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-activity" class="tab" hidden>
+      <div class="panel">
+        <div class="row"><h2>Activity log</h2>
+          <select id="audit-filter"><option value="">Everything</option><option value="tool.">Tool calls</option><option value="action.">Actions</option><option value="chat.">Chat</option><option value="device.">Devices</option><option value="admin.">Sign-ins</option><option value="model.">Model errors</option></select>
+          <button id="audit-refresh" class="ghost small">Refresh</button></div>
+        <table class="table"><thead><tr><th>Time</th><th>Who</th><th>What</th><th>Detail</th></tr></thead><tbody id="audit"></tbody></table>
+      </div>
+    </section>
+
+    <section id="tab-system" class="tab" hidden>
+      <div class="grid">
+        <div class="panel"><h2>Spend this month</h2><div class="big" id="spend">–</div>
+          <div class="meter"><div id="spend-bar"></div></div><p class="small muted" id="spend-detail"></p></div>
+        <div class="panel"><h2>Model</h2><div class="big small-big" id="model-name">–</div><p class="small muted" id="model-detail"></p></div>
+        <div class="panel"><h2>Settings</h2><dl id="settings" class="settings"></dl><p class="small muted">Change these in the server's <code>.env</code> file. Secrets are never shown here.</p></div>
+        <div class="panel"><h2>Tools</h2><ul id="tools" class="tools"></ul></div>
+      </div>
+    </section>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>

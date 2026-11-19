@@ -22,8 +22,8 @@ final class SettingsDialog {
         LiveConfig.Gradient g = a.live.gradient(bgId);
         int alarmsOn = 0;
         for (Alarm x : Prefs.alarms(a)) if (x.enabled) alarmsOn++;
-        String channel = Prefs.channel(a);
         String[] items = {
+                AssistantDialog.settingsLabel(a),
                 "Location: " + c.place + (c.autoLocation ? " (automatic)" : ""),
                 "Background: " + (g != null ? g.label : bgId),
                 "Alarms: " + (alarmsOn == 0 ? "none" : alarmsOn + " on"),
@@ -36,7 +36,6 @@ final class SettingsDialog {
                 "Hourly forecast: every " + c.hourStep + (c.hourStep == 1 ? " hour" : " hours"),
                 "Open when the tablet starts: " + onOff(c.startOnBoot),
                 "Check for updates (this is version " + Updater.installedName(a) + ")",
-                "Alexa pairing code: " + channel.substring(0, 6).toUpperCase(Locale.ROOT),
                 "Close the dashboard",
         };
         new AlertDialog.Builder(a, THEME)
@@ -44,23 +43,21 @@ final class SettingsDialog {
                 .setItems(items, new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface d, int which) {
                         switch (which) {
-                            case 0: location(a); return;
-                            case 1: background(a, c); return;
-                            case 2: AlarmsDialog.show(a); return;
-                            case 3: c.briefing = !c.briefing; break;
-                            case 4: Speaker.say(a, AlarmActivity.briefingText(a)); return;
-                            case 5: calendar(a, c); return;
-                            case 6: c.clock24h = !c.clock24h; break;
-                            case 7: units(a, c); return;
-                            case 8: c.dimAtNight = !c.dimAtNight; break;
-                            case 9: hourly(a, c); return;
-                            case 10: c.startOnBoot = !c.startOnBoot; break;
-                            case 11:
+                            case 0: AssistantDialog.settings(a); return;
+                            case 1: location(a); return;
+                            case 2: background(a, c); return;
+                            case 3: AlarmsDialog.show(a); return;
+                            case 4: c.briefing = !c.briefing; break;
+                            case 5: Speaker.say(a, AlarmActivity.briefingText(a)); return;
+                            case 6: calendar(a, c); return;
+                            case 7: c.clock24h = !c.clock24h; break;
+                            case 8: units(a, c); return;
+                            case 9: c.dimAtNight = !c.dimAtNight; break;
+                            case 10: hourly(a, c); return;
+                            case 11: c.startOnBoot = !c.startOnBoot; break;
+                            case 12:
                                 a.checkForUpdateNow();
                                 Toast.makeText(a, "Checking… if there's an update, a yellow button appears at the top.", Toast.LENGTH_LONG).show();
-                                return;
-                            case 12:
-                                Toast.makeText(a, "Full code: " + Prefs.channel(a), Toast.LENGTH_LONG).show();
                                 return;
                             default: a.finish(); return;
                         }

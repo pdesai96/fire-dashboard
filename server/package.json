@@ -1,0 +1,20 @@
+{
+  "name": "jarvis-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JARVIS assistant backend for the Fire dashboard. Runs on a Raspberry Pi.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/main.ts",
+    "cli": "node --disable-warning=ExperimentalWarning src/cli.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "typescript": "^7.0.2"
+  }
+}

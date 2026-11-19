@@ -106,4 +106,55 @@ final class Json {
         if (i >= s.length() || s.charAt(i) != c) throw new IllegalArgumentException("Expected " + c + " at " + i);
         i++;
     }
+
+    // ---- writing
+
+    /** A JSON string literal for s (null becomes null). */
+    static String quote(String s) {
+        if (s == null) return "null";
+        StringBuilder b = new StringBuilder(s.length() + 2).append('"');
+        for (int k = 0; k < s.length(); k++) {
+            char c = s.charAt(k);
+            switch (c) {
+                case '"': b.append('\\').append('"'); break;
+                case '\\': b.append('\\').append('\\'); break;
+                case '\n': b.append('\\').append('n'); break;
+                case '\r': b.append('\\').append('r'); break;
+                case '\t': b.append('\\').append('t'); break;
+                default:
+                    if (c < 0x20 || c == 0x2028 || c == 0x2029) {
+                        b.append('\\').append('u').append(String.format(java.util.Locale.ROOT, "%04x", (int) c));
+                    } else {
+                        b.append(c);
+                    }
+            }
+        }
+        return b.append('"').toString();
+    }
+
+    /** Builds a flat JSON object from key/value pairs; values may be String, Number, Boolean or null. */
+    static String object(Object... kv) {
+        StringBuilder b = new StringBuilder("{");
+        for (int k = 0; k + 1 < kv.length; k += 2) {
+            if (k > 0) b.append(',');
+            b.append(quote(String.valueOf(kv[k]))).append(':');
+            Object v = kv[k + 1];
+            if (v == null) b.append("null");
+            else if (v instanceof Number || v instanceof Boolean) b.append(v);
+            else b.append(quote(v.toString()));
+        }
+        return b.append('}').toString();
+    }
+
+    // ---- reading helpers for parsed maps
+
+    static String str(Object map, String key) {
+        if (!(map instanceof Map)) return null;
+        Object v = ((Map<?, ?>) map).get(key);
+        return v instanceof String ? (String) v : null;
+    }
+
+    static Object get(Object map, String key) {
+        return map instanceof Map ? ((Map<?, ?>) map).get(key) : null;
+    }
 }

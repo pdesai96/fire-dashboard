@@ -23,6 +23,8 @@ final class Renderer {
     long nextAlarmAt;
     String lastError;
     boolean updating, updateReady;
+    String assistantName = "JARVIS";
+    boolean assistantConnected;
     Palette pal = Palette.of(0xFF1B2440, 0xFF06080F);
     long nowMs;
 
@@ -103,10 +105,14 @@ final class Renderer {
         float dw = text(day, BOLD, 0.95f, TRACK, x, y, LEFT, pal.text, 0);
         float dw2 = text(date, REG, 0.95f, TRACK, x + dw + 0.8f, y, LEFT, pal.text, 0);
         float px = x + dw + 0.8f + dw2 + 1.0f;
-        float right = x + w;
+        float right = assistantPill(x + w, y);
         if (updateReady) {
             String s = "Update ready · tap to install";
             float sw = measure(s, BOLD, 0.78f, 0) + 1.6f;
+            if (right - sw < px) { // not enough room beside the assistant pill: shorter label
+                s = "Install update";
+                sw = measure(s, BOLD, 0.78f, 0) + 1.6f;
+            }
             float bx = right - sw, by = y - 1.15f;
             roundRect(bx, by, sw, 1.6f, 0.8f, pal.accent);
             text(s, BOLD, 0.78f, 0, bx + 0.8f, y - 0.05f, LEFT, 0xFF1A1A1A, 0);
@@ -117,6 +123,24 @@ final class Renderer {
             if (s != null) right -= text(s, REG, 0.75f, 0, right, y, RIGHT, pal.muted, w * 0.45f) + 0.8f;
         }
         if (right - px > 2) text(cfg.place.toUpperCase(Locale.ROOT), REG, 0.8f, TRACK, px, y, LEFT, pal.muted, right - px);
+    }
+
+    /** The assistant button at the right of the top line. Returns the x where the space to its left ends. */
+    private float assistantPill(float right, float y) {
+        String label = assistantConnected ? assistantName.toUpperCase(Locale.ROOT) : "SET UP " + assistantName.toUpperCase(Locale.ROOT);
+        float size = 0.78f, track = assistantConnected ? 0.22f : 0.12f;
+        float tw = measure(label, BOLD, size, track);
+        float dot = 0.62f, padL = 0.7f, padR = 0.8f;
+        float sw = padL + dot + 0.6f + tw + padR;
+        float bx = right - sw, by = y - 1.15f;
+        roundRect(bx, by, sw, 1.6f, 0.8f, pal.panel);
+        int ring = assistantConnected ? 0xFF4FD1FF : pal.faint;
+        float cx = bx + padL + dot / 2, cy = by + 0.8f;
+        p.circle(X(cx), Y(cy), dot / 2 * u, assistantConnected ? ring : null, ring, Math.max(1f, 0.1f * u));
+        if (assistantConnected) p.circle(X(cx), Y(cy), dot * 0.95f * u, null, 0x554FD1FF, Math.max(1f, 0.08f * u));
+        text(label, BOLD, size, track, bx + padL + dot + 0.6f, y - 0.05f, LEFT, assistantConnected ? pal.text : pal.muted, 0);
+        hits.add(hit(bx - 0.5f, by - 0.6f, sw + 1f, 2.8f, "assistant"));
+        return bx - 0.8f;
     }
 
     private String status(double age) {

@@ -6,6 +6,9 @@ on:
     paths-ignore:
       - 'live/**'      # live config changes reach the tablet directly, no rebuild needed
       - 'alexa/**'
+      - 'server/**'    # the Pi backend has its own workflow (server.yml)
+      - 'docs/**'
+      - '.github/workflows/server.yml'
       - '**.md'
   workflow_dispatch:
 

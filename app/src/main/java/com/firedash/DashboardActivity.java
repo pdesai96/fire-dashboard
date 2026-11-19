@@ -134,6 +134,8 @@ public class DashboardActivity extends Activity {
             AlarmsDialog.show(this);
         } else if (action.equals("update")) {
             installUpdate();
+        } else if (action.equals("assistant")) {
+            AssistantDialog.show(this);
         } else if (action.startsWith("news:")) {
             int i = Integer.parseInt(action.substring(5));
             if (news != null && i < news.size() && !news.get(i).link.isEmpty()) {
@@ -505,6 +507,8 @@ public class DashboardActivity extends Activity {
         r.unitedError = unitedError;
         r.news = news;
         r.updateReady = updateReady();
+        r.assistantName = Prefs.jarvisName(this);
+        r.assistantConnected = AssistantDialog.connected(this);
         r.agenda = null;
         if (!cfg.icsUrl.isEmpty()) {
             r.agenda = new ArrayList<>();

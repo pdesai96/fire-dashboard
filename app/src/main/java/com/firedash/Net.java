@@ -146,6 +146,57 @@ final class Net {
         throw new IOException("too many redirects");
     }
 
+    /** A reply from send(): the status code and body, whatever the status. */
+    static final class Reply {
+        final int code;
+        final String body;
+        Reply(int code, String body) { this.code = code; this.body = body; }
+    }
+
+    /**
+     * Sends a request with an optional JSON body and bearer token. Used for the JARVIS server on the LAN.
+     * Unlike get(), error statuses are returned rather than thrown, so the server's message can be shown.
+     */
+    static Reply send(String method, String url, String json, String bearer, int readTimeoutMs) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(readTimeoutMs);
+            conn.setInstanceFollowRedirects(false);
+            conn.setRequestMethod(method);
+            conn.setRequestProperty("User-Agent", "FireDashboard/2.0 (Android)");
+            conn.setRequestProperty("Accept", "application/json");
+            if (bearer != null) conn.setRequestProperty("Authorization", "Bearer " + bearer);
+            if (json != null) {
+                byte[] bytes = json.getBytes("UTF-8");
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                conn.setFixedLengthStreamingMode(bytes.length);
+                OutputStream out = conn.getOutputStream();
+                try {
+                    out.write(bytes);
+                } finally {
+                    out.close();
+                }
+            }
+            int code = conn.getResponseCode();
+            InputStream in = code >= 400 ? conn.getErrorStream() : conn.getInputStream();
+            String body = "";
+            if (in != null) {
+                ByteArrayOutputStream buf = new ByteArrayOutputStream();
+                try {
+                    copy(in, buf);
+                } finally {
+                    in.close();
+                }
+                body = new String(buf.toByteArray(), "UTF-8");
+            }
+            return new Reply(code, body);
+        } finally {
+            conn.disconnect();
+        }
+    }
+
     private static void copy(InputStream in, OutputStream out) throws IOException {
         byte[] buf = new byte[16384];
         int r;

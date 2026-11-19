@@ -1,0 +1,20 @@
+services:
+  jarvis:
+    build: .
+    container_name: jarvis
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    ports:
+      # LAN only. Do not forward this port on your router.
+      - "8787:8787"
+    volumes:
+      - ./data:/data
+    # A Pi 3B has 1 GB RAM; this keeps JARVIS well inside it.
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
