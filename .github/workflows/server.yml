@@ -40,7 +40,8 @@ jobs:
         run: docker build -t jarvis-core server
       - name: Smoke test
         run: |
-          docker run -d --name j -p 8787:8787 -e ADMIN_PASSWORD=ci-smoke-password jarvis-core
+          docker run -d --name jarvis-smoke -p 8787:8787 -e ADMIN_PASSWORD=ci-smoke-password jarvis-core
           for i in $(seq 1 20); do curl -fs localhost:8787/api/health && break; sleep 1; done
+          docker logs jarvis-smoke
           curl -fs localhost:8787/api/health | grep '"modelStatus":"no_key"'
-          docker logs j
+          curl -fs -o /dev/null localhost:8787/
